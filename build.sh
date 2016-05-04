@@ -1,14 +1,18 @@
 #!/bin/bash
 MODULE="db"
 VERSION=`grep self conf/dependencies.yml | sed "s/.*$MODULE //"`
-TARGET=/var/www/repo/play-$MODULE/$MODULE-$VERSION.zip
+DESTINATION=/var/www/repo/$ORGANIZATION
+TARGET=$DESTINATION/$MODULE-$VERSION.zip
 
 rm -fr dist
 play dependencies --sync || exit $?
 play build-module || exit $?
 
-if [ -e $TARGET ]; then
-    echo "Not publishing, $MODULE-$VERSION already exists"
-else
-    cp dist/*.zip $TARGET
+if [ -d $DESTINATION ]; then
+  if [ -e $TARGET ]; then
+      echo "Not publishing, $MODULE-$VERSION already exists"
+  else
+      cp dist/*.zip $TARGET
+      echo "Package is available at https://repo.codeborne.com/$ORGANIZATION/$MODULE-$VERSION.zip"
+  fi
 fi
