@@ -1,4 +1,5 @@
 #!/bin/bash
+ORGANIZATION="play-db"
 MODULE="db"
 VERSION=`grep self conf/dependencies.yml | sed "s/.*$MODULE //"`
 DESTINATION=/var/www/repo/$ORGANIZATION
