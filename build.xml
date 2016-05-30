@@ -29,7 +29,7 @@
         <include name="**/play.static"/>
       </fileset>
     </copy>
-    <jar destfile="lib/play-db.jar" basedir="tmp/classes">
+    <jar destfile="lib/play-db.jar" basedir="tmp/classes" excludes="oracle/**">
       <manifest>
         <section name="Play-module">
           <attribute name="Specification-Title" value="play-db"/>
