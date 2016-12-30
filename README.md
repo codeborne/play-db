@@ -10,7 +10,7 @@ Add it to your dependencies.yml
 
     require:
         - play
-        - play-codeborne -> db 1.1
+        - play-codeborne -> db 1.2
     
     repositories:
         - play-db:
@@ -18,13 +18,3 @@ Add it to your dependencies.yml
           artifact: https://repo.codeborne.com/play-db/[module]-[revision].zip
           contains:
             - play-codeborne -> *
-
-CHANGELOG
-
-### 1.1 [31.05.2016]
-
-Added class play.db.TimeoutAwareOracleDriver
- 
-### 1.0 [04.05.2016]
-
-created

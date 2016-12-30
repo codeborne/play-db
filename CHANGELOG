@@ -1,0 +1,13 @@
+## CHANGELOG
+   
+### 1.2 [30.12.2016]
+
+* unwrap invocation exceptions properly in proxies - otherwise we get double-wrapped SQL exceptions that cannot be handled properly
+
+### 1.1 [31.05.2016]
+
+* Added class play.db.TimeoutAwareOracleDriver
+
+### 1.0 [04.05.2016]
+
+* created
