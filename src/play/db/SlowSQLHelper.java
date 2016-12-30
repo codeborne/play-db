@@ -5,8 +5,8 @@ import play.mvc.Http;
 import play.mvc.Scope;
 
 import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.lang.reflect.Proxy;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.util.Collection;
@@ -17,6 +17,7 @@ import java.util.concurrent.Callable;
 import java.util.function.Predicate;
 import java.util.regex.Pattern;
 
+import static java.lang.reflect.Proxy.newProxyInstance;
 import static java.util.Collections.synchronizedCollection;
 import static java.util.stream.Collectors.groupingBy;
 
@@ -39,6 +40,15 @@ public class SlowSQLHelper {
       entry.count++;
     } else {
       logs.add(new LogEntry(sql, requestId, duration, sessionId));
+    }
+  }
+
+  public static <T> T invokeUnwrappingExceptions(Method method, Object target, Object ... args) throws Throwable {
+    try {
+      return (T) method.invoke(target, args);
+    }
+    catch (InvocationTargetException e) {
+      throw e.getTargetException();
     }
   }
 
@@ -81,15 +91,13 @@ public class SlowSQLHelper {
     }
 
     @Override public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-      switch (method.getName()) {
-        case "prepareStatement":
-          PreparedStatement preparedStatement = (PreparedStatement) method.invoke(connection, args);
-          return Proxy.newProxyInstance(PreparedStatement.class.getClassLoader(),
-              new Class<?>[] {PreparedStatement.class}, new LoggingStatementDecorator(preparedStatement, (String) args[0]));
-        default: return method.invoke(connection, args);
+      Object result = invokeUnwrappingExceptions(method, connection, args);
+      if ("prepareStatement".equals(method.getName())) {
+        return newProxyInstance(PreparedStatement.class.getClassLoader(),
+            new Class<?>[] {PreparedStatement.class}, new LoggingStatementDecorator((PreparedStatement)result, (String) args[0]));
       }
+      return result;
     }
-
   }
 
   public static class LoggingStatementDecorator implements InvocationHandler {
@@ -103,17 +111,19 @@ public class SlowSQLHelper {
 
     @Override public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
       switch (method.getName()) {
-        case "executeBatch": return executeWithLogging(method, args);
-        case "executeQuery": return executeWithLogging(method, args);
-        case "executeUpdate": return executeWithLogging(method, args);
-        default: return method.invoke(statement, args);
+        case "executeBatch":
+        case "executeQuery":
+        case "executeUpdate":
+          return invokeWithLogging(method, args);
+        default:
+          return invokeUnwrappingExceptions(method, statement, args);
       }
     }
 
-    private Object executeWithLogging(Method method, Object[] args) throws Throwable {
+    private Object invokeWithLogging(Method method, Object[] args) throws Throwable {
       long now = System.currentTimeMillis();
       try {
-        return method.invoke(statement, args);
+        return invokeUnwrappingExceptions(method, statement, args);
       }
       finally {
         addSlowSQLLog(sql, System.currentTimeMillis() - now);

@@ -21,11 +21,12 @@ import org.apache.commons.logging.LogFactory;
 
 import javax.sql.DataSource;
 import java.lang.reflect.InvocationHandler;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.sql.Connection;
 import java.sql.SQLException;
+
+import static play.db.SlowSQLHelper.invokeUnwrappingExceptions;
 
 /**
  * Proxy for a target DataSource, fetching actual JDBC Connections lazily,
@@ -351,12 +352,7 @@ public class LazyConnectionDataSourceProxy extends DelegatingDataSource {
       // Target Connection already fetched,
       // or target Connection necessary for current operation ->
       // invoke method on target connection.
-      try {
-        return method.invoke(getTargetConnection(method), args);
-      }
-      catch (InvocationTargetException ex) {
-        throw ex.getTargetException();
-      }
+      return invokeUnwrappingExceptions(method, getTargetConnection(method), args);
     }
 
     /**

@@ -18,8 +18,9 @@ import java.util.Map;
 
 import static org.apache.commons.lang.StringUtils.isNotEmpty;
 import static play.Play.Mode.DEV;
-import static play.libs.Time.parseDuration;
 import static play.db.SlowSQLHelper.LoggingConnectionDecorator;
+import static play.db.SlowSQLHelper.invokeUnwrappingExceptions;
+import static play.libs.Time.parseDuration;
 
 public class LazyDBPlugin extends DBPlugin {
   private static final org.slf4j.Logger logger = LoggerFactory.getLogger(LazyDBPlugin.class);
@@ -90,11 +91,11 @@ public class LazyDBPlugin extends DBPlugin {
 
     private DataSource loggingConnectionDataSourceProxy(DataSource datasource) {
       return (DataSource) Proxy.newProxyInstance(datasource.getClass().getClassLoader(), new Class<?>[]{DataSource.class}, (proxy, method, args) -> {
+        Object result = invokeUnwrappingExceptions(method, datasource, args);
         if ("getConnection".equals(method.getName())) {
-          Connection connection = (Connection) method.invoke(datasource, args);
-          return Proxy.newProxyInstance(Connection.class.getClassLoader(), new Class<?>[]{Connection.class}, new LoggingConnectionDecorator(connection));
+          return Proxy.newProxyInstance(Connection.class.getClassLoader(), new Class<?>[]{Connection.class}, new LoggingConnectionDecorator((Connection)result));
         }
-        return method.invoke(datasource, args);
+        return result;
       });
     }
   }
