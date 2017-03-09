@@ -3,6 +3,7 @@ package plugins;
 import com.mchange.v2.c3p0.ComboPooledDataSource;
 import com.mysql.jdbc.AbandonedConnectionCleanupThread;
 import org.apache.log4j.Level;
+import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import play.Play;
 import play.db.DB;
@@ -11,19 +12,16 @@ import play.db.LazyConnectionDataSourceProxy;
 import play.db.OracleConnectionCustomizer;
 
 import javax.sql.DataSource;
-import java.lang.reflect.Proxy;
-import java.sql.Connection;
 import java.util.HashMap;
 import java.util.Map;
 
 import static org.apache.commons.lang.StringUtils.isNotEmpty;
 import static play.Play.Mode.DEV;
-import static play.db.SlowSQLHelper.LoggingConnectionDecorator;
-import static play.db.SlowSQLHelper.invokeUnwrappingExceptions;
+import static play.db.LoggingConnectionDecorator.loggingConnectionDataSourceProxy;
 import static play.libs.Time.parseDuration;
 
 public class LazyDBPlugin extends DBPlugin {
-  private static final org.slf4j.Logger logger = LoggerFactory.getLogger(LazyDBPlugin.class);
+  private static final Logger logger = LoggerFactory.getLogger(LazyDBPlugin.class);
   private DBModifier dbModifier = new DBModifier();
 
   @Override public void onLoad() {
@@ -87,16 +85,6 @@ public class LazyDBPlugin extends DBPlugin {
         dataSource = loggingConnectionDataSourceProxy(dataSource);
       }
       return dataSource;
-    }
-
-    private DataSource loggingConnectionDataSourceProxy(DataSource datasource) {
-      return (DataSource) Proxy.newProxyInstance(datasource.getClass().getClassLoader(), new Class<?>[]{DataSource.class}, (proxy, method, args) -> {
-        Object result = invokeUnwrappingExceptions(method, datasource, args);
-        if ("getConnection".equals(method.getName())) {
-          return Proxy.newProxyInstance(Connection.class.getClassLoader(), new Class<?>[]{Connection.class}, new LoggingConnectionDecorator((Connection)result));
-        }
-        return result;
-      });
     }
   }
 

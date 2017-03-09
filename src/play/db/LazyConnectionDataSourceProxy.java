@@ -26,7 +26,7 @@ import java.lang.reflect.Proxy;
 import java.sql.Connection;
 import java.sql.SQLException;
 
-import static play.db.SlowSQLHelper.invokeUnwrappingExceptions;
+import static play.db.Reflection.invokeUnwrappingExceptions;
 
 /**
  * Proxy for a target DataSource, fetching actual JDBC Connections lazily,

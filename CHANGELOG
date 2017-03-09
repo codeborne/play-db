@@ -4,7 +4,7 @@
 
 * use effective data structure to avoid blocking threads under stress load
 * upgrade to play 1.5.+
-* extract inner class SlowSQLHelper.LogEntry to a separate class
+* extract inner classes of SlowSQLHelper to separate files
 
 ### 1.2 [30.12.2016]
 
