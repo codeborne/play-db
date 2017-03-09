@@ -1,7 +1,6 @@
 package play.db;
 
 import org.junit.Test;
-import play.db.SlowSQLHelper.LogEntry;
 
 import static org.junit.Assert.assertEquals;
 
@@ -21,6 +20,6 @@ public class LogEntryTest {
   }
 
   private LogEntry logEntry(String sql) {
-    return new LogEntry(sql, null, null, null);
+    return new LogEntry(sql, null, null);
   }
 }
