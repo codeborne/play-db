@@ -25,8 +25,11 @@ public class LazyDBPlugin extends DBPlugin {
   private DBModifier dbModifier = new DBModifier();
 
   @Override public void onLoad() {
-    // disable built-in DBPlugin
-    Play.pluginCollection.disablePlugin(DBPlugin.class);
+    // disable built-in DBPlugin (if it's not already disabled)
+    DBPlugin dbPlugin = Play.pluginCollection.getPluginInstance(DBPlugin.class);
+    if (dbPlugin != this) {
+      Play.pluginCollection.disablePlugin(dbPlugin);
+    }
   }
 
   @Override public void onApplicationStart() {
@@ -90,12 +93,7 @@ public class LazyDBPlugin extends DBPlugin {
 
   private void stopUselessMySqlCleanupThread() {
     if (!"com.mysql.jdbc.Driver".equals(Play.configuration.getProperty("db.driver"))) {
-      try {
-        AbandonedConnectionCleanupThread.shutdown();
-      }
-      catch (InterruptedException e) {
-        logger.info("Unable to stop MySql cleanup thread", e);
-      }
+      AbandonedConnectionCleanupThread.uncheckedShutdown();
     }
   }
 }
