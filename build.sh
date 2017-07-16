@@ -7,8 +7,8 @@ TARGET=$DESTINATION/$MODULE-$VERSION.zip
 
 rm -fr dist
 ./update-play.sh
-play dependencies --sync || exit $?
-play build-module || exit $?
+$PLAY_HOME/play dependencies --sync || exit $?
+$PLAY_HOME/play build-module || exit $?
 
 if [ -d $DESTINATION ]; then
   if [ -e $TARGET ]; then
