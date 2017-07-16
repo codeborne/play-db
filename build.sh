@@ -6,6 +6,7 @@ DESTINATION=/var/www/repo/$ORGANIZATION
 TARGET=$DESTINATION/$MODULE-$VERSION.zip
 
 rm -fr dist
+./update-play.sh
 play dependencies --sync || exit $?
 play build-module || exit $?
 
