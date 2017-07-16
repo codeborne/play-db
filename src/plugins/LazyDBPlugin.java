@@ -1,24 +1,20 @@
 package plugins;
 
-import com.mchange.v2.c3p0.ComboPooledDataSource;
 import com.mysql.jdbc.AbandonedConnectionCleanupThread;
-import org.apache.log4j.Level;
+import com.zaxxer.hikari.HikariDataSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import play.Play;
 import play.db.DB;
 import play.db.DBPlugin;
 import play.db.LazyConnectionDataSourceProxy;
-import play.db.OracleConnectionCustomizer;
 
 import javax.sql.DataSource;
 import java.util.HashMap;
 import java.util.Map;
 
 import static org.apache.commons.lang.StringUtils.isNotEmpty;
-import static play.Play.Mode.DEV;
 import static play.db.LoggingConnectionDecorator.loggingConnectionDataSourceProxy;
-import static play.libs.Time.parseDuration;
 
 public class LazyDBPlugin extends DBPlugin {
   private static final Logger logger = LoggerFactory.getLogger(LazyDBPlugin.class);
@@ -53,20 +49,11 @@ public class LazyDBPlugin extends DBPlugin {
   }
 
   private void setPreferredTestQueryForConnectionPool() {
-    ComboPooledDataSource ds = (ComboPooledDataSource) DB.datasource;
+    HikariDataSource ds = (HikariDataSource) DB.datasource;
     String testQuery = Play.configuration.getProperty("db.testquery");
     if (Play.mode.isProd() && isNotEmpty(testQuery) && ds.getJdbcUrl().contains("oracle")) {
-      ds.setPreferredTestQuery(testQuery);
-      ds.setConnectionCustomizerClassName(OracleConnectionCustomizer.class.getName());
-    }
-
-    // Enable c3p0 recovering of unreturned connections and logging of stack traces - temporary debug
-    org.apache.log4j.Logger.getLogger("com.mchange").setLevel(Level.INFO);
-    int returnTimeoutSeconds = parseDuration(Play.configuration.getProperty("db.pool.returnTimeout", "6mn"));
-    ds.setUnreturnedConnectionTimeout(returnTimeoutSeconds);
-    ds.setDebugUnreturnedConnectionStackTraces(true);
-    if (Play.mode == DEV) {
-      ds.setMaxAdministrativeTaskTime(1);
+      ds.setConnectionTestQuery(testQuery);
+//      ds.setConnectionCustomizerClassName(OracleConnectionCustomizer.class.getName());
     }
   }
   
