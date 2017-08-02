@@ -10,7 +10,7 @@ Add it to your dependencies.yml
 
     require:
         - play
-        - play-codeborne -> db 2.0.b1
+        - play-codeborne -> db 2.0
     
     repositories:
         - play-db:

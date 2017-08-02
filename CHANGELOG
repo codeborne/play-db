@@ -1,8 +1,8 @@
 ## CHANGELOG
    
-### 2.0.b1 [17.07.2017]
+### 2.0 [02.08.2017]
 
-* upgrade to play 1.5 - branch extract-c3p0-specific with support for Hikari CP
+* upgrade to HikariCP in play 1.5 (master branch)
 
 ### 1.4 [02.06.2017]
 
