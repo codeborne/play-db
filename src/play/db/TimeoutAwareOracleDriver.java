@@ -16,10 +16,12 @@ import static play.libs.Time.parseDuration;
 public class TimeoutAwareOracleDriver extends OracleDriver {
   private static final Logger logger = LoggerFactory.getLogger(TimeoutAwareOracleDriver.class);
 
-  public static final int TIMEOUT_SEC = parseDuration(Play.configuration.getProperty("db.default.connectTimeout", "5s"));
+  private int CONNECT_TIMEOUT_SEC = parseDuration(Play.configuration.getProperty("db.default.connectTimeout", "5s"));
+  private String CONNECT_TIMEOUT_MS = String.valueOf(1000 * CONNECT_TIMEOUT_SEC);
+  private String READ_TIMEOUT_MS = String.valueOf(1000 * parseDuration(Play.configuration.getProperty("db.default.readTimeout", "1mn")));
 
   public TimeoutAwareOracleDriver() {
-    DriverManager.setLoginTimeout(TIMEOUT_SEC);
+    DriverManager.setLoginTimeout(CONNECT_TIMEOUT_SEC);
     logger.info("Using " + getClass().getSimpleName());
   }
 
@@ -29,7 +31,12 @@ public class TimeoutAwareOracleDriver extends OracleDriver {
 
   @Override public Connection connect(String url, Properties props) throws SQLException {
     url = url.replace("jdbc:ex:", "jdbc:");
-    props.setProperty("oracle.net.CONNECT_TIMEOUT", Integer.toString(TIMEOUT_SEC * 1000));
+    props.setProperty("oracle.net.CONNECT_TIMEOUT", CONNECT_TIMEOUT_MS);
+    props.setProperty("oracle.jdbc.ReadTimeout", READ_TIMEOUT_MS);
+    return superConnect(url, props);
+  }
+
+  Connection superConnect(String url, Properties props) throws SQLException {
     return super.connect(url, props);
   }
 

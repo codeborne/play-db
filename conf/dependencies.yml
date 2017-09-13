@@ -1,6 +1,7 @@
-self: play-db -> db 2.0
+self: play-db -> db 2.1
 
 require:
     - play [1.3,1.5+]
+    - org.mockito -> mockito-core 2.10.0
     - com.google.guava -> guava 22.0:
         transitive: false
